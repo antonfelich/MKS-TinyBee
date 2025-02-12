@@ -799,134 +799,18 @@ void MarlinUI::draw_status_screen() {
   #if LCD_INFO_SCREEN_STYLE == 0
 
     // ========== Line 1 ==========
+    lcd_put_u8str_P(PSTR("RecreatorMK5"));
 
-    #if LCD_WIDTH < 20
-
-      //
-      // Hotend 0 Temperature
-      //
-      #if HAS_HOTEND
-        _draw_heater_status(H_E0, -1, blink);
-
-        //
-        // Hotend 1 or Bed Temperature
-        //
-        #if HAS_MULTI_HOTEND
-          lcd_moveto(8, 0);
-          _draw_heater_status(H_E1, LCD_STR_THERMOMETER[0], blink);
-        #elif HAS_HEATED_BED
-          lcd_moveto(8, 0);
-          _draw_bed_status(blink);
-        #endif
-      #endif
-
-    #else // LCD_WIDTH >= 20
-
-      //
-      // Hotend 0 Temperature
-      //
-      #if HAS_HOTEND
-        _draw_heater_status(H_E0, LCD_STR_THERMOMETER[0], blink);
-
-        //
-        // Hotend 1 or Bed Temperature
-        //
-        #if HAS_MULTI_HOTEND
-          lcd_moveto(10, 0);
-          _draw_heater_status(H_E1, LCD_STR_THERMOMETER[0], blink);
-        #elif HAS_HEATED_BED
-          lcd_moveto(10, 0);
-          _draw_bed_status(blink);
-        #endif
-      #endif
-
-      TERN_(HAS_COOLER, _draw_cooler_status('*', blink));
-      TERN_(LASER_COOLANT_FLOW_METER, _draw_flowmeter_status());
-      TERN_(I2C_AMMETER, _draw_ammeter_status());
-
-    #endif // LCD_WIDTH >= 20
 
     // ========== Line 2 ==========
 
     #if LCD_HEIGHT > 2
 
-      #if LCD_WIDTH < 20
-
-        #if HAS_PRINT_PROGRESS
-          lcd_moveto(0, 2);
-          _draw_print_progress();
-        #endif
-
-      #else // LCD_WIDTH >= 20
-
-        lcd_moveto(0, 1);
-
-        // If the first line has two extruder temps,
-        // show more temperatures on the next line
-
-        #if HOTENDS > 2 || (HAS_MULTI_HOTEND && HAS_HEATED_BED)
-
-          #if HOTENDS > 2
-            _draw_heater_status(H_E2, LCD_STR_THERMOMETER[0], blink);
-            lcd_moveto(10, 1);
-          #endif
-
-          _draw_bed_status(blink);
-
-        #else // HOTENDS <= 2 && (HOTENDS <= 1 || !HAS_HEATED_BED)
-
-          #if HAS_DUAL_MIXING
-
-            // Two-component mix / gradient instead of XY
-
-            char mixer_messages[12];
-            const char *mix_label;
-            #if ENABLED(GRADIENT_MIX)
-              if (mixer.gradient.enabled) {
-                mixer.update_mix_from_gradient();
-                mix_label = "Gr";
-              }
-              else
-            #endif
-              {
-                mixer.update_mix_from_vtool();
-                mix_label = "Mx";
-              }
-            sprintf_P(mixer_messages, PSTR("%s %d;%d%% "), mix_label, int(mixer.mix[0]), int(mixer.mix[1]));
-            lcd_put_u8str(mixer_messages);
-
-          #else // !HAS_DUAL_MIXING
-
-            const bool show_e_total = TERN0(LCD_SHOW_E_TOTAL, printingIsActive());
-
-            if (show_e_total) {
-              #if ENABLED(LCD_SHOW_E_TOTAL)
-                char tmp[20];
-                const uint8_t escale = e_move_accumulator >= 100000.0f ? 10 : 1; // After 100m switch to cm
-                sprintf_P(tmp, PSTR("E %ld%cm       "), uint32_t(_MAX(e_move_accumulator, 0.0f)) / escale, escale == 10 ? 'c' : 'm'); // 1234567mm
-                lcd_put_u8str(tmp);
-              #endif
-            }
-            else {
-              const xy_pos_t lpos = current_position.asLogical();
-              _draw_axis_value(X_AXIS, ftostr4sign(lpos.x), blink);
-              lcd_put_wchar(' ');
-              _draw_axis_value(Y_AXIS, ftostr4sign(lpos.y), blink);
-            }
-
-          #endif // !HAS_DUAL_MIXING
-
-        #endif // HOTENDS <= 2 && (HOTENDS <= 1 || !HAS_HEATED_BED)
-
-      #endif // LCD_WIDTH >= 20
-
-      lcd_moveto(LCD_WIDTH - 8, 1);
-      _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(current_position.z)), blink);
-
-      #if HAS_LEVELING && !HAS_HEATED_BED
-        lcd_put_wchar(planner.leveling_active || blink ? '_' : ' ');
-      #endif
-
+      //
+      // Hotend 0 Temperature
+      //
+      lcd_moveto(0, 2);
+      _draw_heater_status(H_E0, LCD_STR_THERMOMETER[0], blink);
     #endif // LCD_HEIGHT > 2
 
     // ========== Line 3 ==========
